@@ -26,7 +26,7 @@ except ImportError:
 DOCUMENTATION = '''
 ---
 module: nova_snapshot
-version_added: "1.2"
+version_added: ".1"
 short_description: Create a snapshot of a running instance
 description:
    - Create a snapshot of a running instance
@@ -51,17 +51,12 @@ options:
         - The keystone url for authentication
      required: false
      default: 'http://127.0.0.1:35357/v2.0/'
-   region_name:
-     description:
-        - Name of the region
-     required: false
-     default: None
    state:
      description:
         - Indicate desired state of the resource
      choices: ['present', 'absent']
      default: present
-   name:
+   instance_name:
      description:
         - Name that has to be given to the instance
      required: true
@@ -75,13 +70,14 @@ requirements: ["novaclient"]
 '''
 
 EXAMPLES = '''
-# Creates a new VM and attaches to a network and passes metadata to the instance
-- nova_floating_ip:
+# Creates a new new snapshot of the instance
+- nova_snapshot:
        state: present
        login_username: admin
        login_password: admin
        login_tenant_name: admin
-       name: vm1
+       instance_name: vm1
+       snapshot_name: vm1_snapshot1
 '''
 
 def _create_snapshot(module, nova, server):
@@ -129,13 +125,11 @@ def main():
     except exc.AuthorizationFailure, e:
         module.fail_json(msg = "Unable to authorize user: %s" % e.message)
 
-    #_get_server_public_ip(module, nova)
     server = _get_server(module, nova)
     if server:
         _create_snapshot(module, nova, server)
     else:
         module.exit_json(changed=False)
-
 
 # this is magic, see lib/ansible/module.params['common.py
 from ansible.module_utils.basic import *
